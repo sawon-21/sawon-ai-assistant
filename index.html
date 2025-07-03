@@ -1,0 +1,749 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>শাওন AI</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;500;600;700&display=swap');
+    
+    :root {
+      --gold: #FFD700;
+      --gold-dark: #D4AF37;
+      --black: #121212;
+      --black-light: #1E1E1E;
+      --white: #F5F5F5;
+      --white-dark: #E0E0E0;
+      --error: #ff4444;
+      --border-radius: 16px;
+      --box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+      --transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes pulse {
+      0% { transform: scale(0.95); opacity: 0.6; }
+      50% { transform: scale(1.05); opacity: 1; }
+      100% { transform: scale(0.95); opacity: 0.6; }
+    }
+
+    @keyframes float {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-10px); }
+    }
+
+    @keyframes typingDots {
+      0%, 60%, 100% { transform: translateY(0); opacity: 0.6; }
+      30% { transform: translateY(-5px); opacity: 1; }
+    }
+
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
+      20%, 40%, 60%, 80% { transform: translateX(5px); }
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      user-select: none;
+      -webkit-user-select: none;
+      -moz-user-select: none;
+      -ms-user-select: none;
+    }
+
+    body {
+      font-family: 'Hind Siliguri', sans-serif;
+      background: var(--black);
+      color: var(--white);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 0;
+      overflow: hidden;
+      touch-action: manipulation;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 800px;
+      height: 100vh;
+      max-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      background: var(--black-light);
+      border-radius: var(--border-radius);
+      box-shadow: var(--box-shadow);
+      overflow: hidden;
+      border: 1px solid rgba(255, 215, 0, 0.1);
+      position: relative;
+    }
+
+    .chat-header {
+      padding: 5px;
+      background: linear-gradient(135deg, #1a1a1a, #2a2a2a);
+      border-bottom: 1px solid rgba(255, 215, 0, 0.1);
+      text-align: center;
+      position: relative;
+      z-index: 10;
+    }
+
+    .chat-header h2 {
+      color: var(--gold);
+      font-weight: 600;
+      letter-spacing: 1px;
+      font-size: 1.4rem;
+    }
+
+    .chat-header::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, var(--gold), transparent);
+    }
+
+    #chat-box {
+      flex: 1;
+      padding: 20px;
+      overflow-y: auto;
+      scroll-behavior: smooth;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100"><rect width="100" height="100" fill="none"/><path d="M30,30 L70,30 L70,70 L30,70 Z" stroke="rgba(255,215,0,0.03)" stroke-width="1" fill="none"/></svg>');
+    }
+
+    .message {
+      max-width: 85%;
+      padding: 10px 14px;
+      border-radius: var(--border-radius);
+      position: relative;
+      line-height: 1.2;
+      word-wrap: break-word;
+      animation: fadeIn 0.4s ease forwards;
+      box-shadow: var(--box-shadow);
+      opacity: 0;
+      transform: translateY(10px);
+    }
+
+    .user-message {
+      align-self: flex-end;
+      background: linear-gradient(135deg, var(--gold-dark), var(--gold));
+      color: var(--black);
+      border-bottom-right-radius: 5px;
+    }
+
+    .bot-message {
+      align-self: flex-start;
+      background: rgba(30, 30, 30, 0.9);
+      color: var(--white);
+      border: 1px solid rgba(255, 215, 0, 0.1);
+      border-bottom-left-radius: 5px;
+    }
+
+    .error-message {
+      align-self: center;
+      background: rgba(255, 68, 68, 0.15);
+      color: var(--white);
+      border: 1px solid rgba(255, 68, 68, 0.3);
+      text-align: center;
+      padding: 12px;
+      border-radius: var(--border-radius);
+      animation: shake 0.5s ease;
+    }
+
+    .typing-indicator {
+      align-self: flex-start;
+      background: rgba(30, 30, 30, 0.9);
+      padding: 12px 18px;
+      border-radius: var(--border-radius);
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      color: var(--gold);
+      border: 1px solid rgba(255, 215, 0, 0.1);
+      animation: pulse 2s infinite;
+    }
+
+    .typing-dots {
+      display: flex;
+      gap: 6px;
+    }
+
+    .typing-dots span {
+      width: 8px;
+      height: 8px;
+      background: var(--gold);
+      border-radius: 50%;
+      display: inline-block;
+      animation: typingDots 1.4s infinite ease-in-out;
+    }
+
+    .typing-dots span:nth-child(2) {
+      animation-delay: 0.2s;
+    }
+
+    .typing-dots span:nth-child(3) {
+      animation-delay: 0.4s;
+    }
+
+    .chat-input-container {
+      padding: 15px;
+      background: var(--black);
+      border-top: 1px solid rgba(255, 215, 0, 0.1);
+      position: relative;
+      z-index: 10;
+    }
+
+    .chat-input-container::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, var(--gold), transparent);
+    }
+
+    .chat-input-wrapper {
+      display: flex;
+      gap: 10px;
+      align-items: flex-end;
+    }
+
+    #user-input {
+      flex: 1;
+      padding: 14px 18px;
+      border-radius: var(--border-radius);
+      border: none;
+      background: rgba(30, 30, 30, 0.9);
+      color: var(--white);
+      font-size: 16px;
+      outline: none;
+      border: 1px solid rgba(255, 215, 0, 0.1);
+      transition: var(--transition);
+      resize: none;
+      min-height: 60px;
+      max-height: 120px;
+      scrollbar-width: none;
+      font-family: 'Hind Siliguri', sans-serif;
+    }
+
+    #user-input:focus {
+      border-color: var(--gold);
+      box-shadow: 0 0 0 3px rgba(255, 215, 0, 0.2);
+    }
+
+    #send-btn {
+      width: 60px;
+      height: 60px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--gold-dark), var(--gold));
+      color: var(--black);
+      border: none;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      cursor: pointer;
+      transition: var(--transition);
+      box-shadow: 0 5px 15px rgba(255, 215, 0, 0.2);
+    }
+
+    #send-btn:hover {
+      transform: translateY(-3px) scale(1.05);
+      box-shadow: 0 8px 20px rgba(255, 215, 0, 0.4);
+    }
+
+    #send-btn:disabled {
+      background: rgba(30, 30, 30, 0.8);
+      color: rgba(255, 255, 255, 0.3);
+      transform: none;
+      box-shadow: none;
+      cursor: not-allowed;
+    }
+
+    #send-btn i {
+      font-size: 20px;
+      transition: var(--transition);
+    }
+
+    /* Custom Scrollbar */
+    #chat-box::-webkit-scrollbar {
+      width: 6px;
+    }
+
+    #chat-box::-webkit-scrollbar-track {
+      background: rgba(255, 255, 255, 0.02);
+    }
+
+    #chat-box::-webkit-scrollbar-thumb {
+      background: rgba(255, 215, 0, 0.3);
+      border-radius: 3px;
+    }
+
+    #chat-box::-webkit-scrollbar-thumb:hover {
+      background: rgba(255, 215, 0, 0.5);
+    }
+
+    .message-time {
+      display: block;
+      font-size: 0.7rem;
+      text-align: right;
+      margin-top: 8px;
+      opacity: 0.7;
+      color: inherit;
+    }
+
+    .security-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.95);
+      z-index: 1000;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      color: var(--error);
+      font-size: 1.3rem;
+      backdrop-filter: blur(10px);
+      text-align: center;
+      padding: 20px;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .security-overlay i {
+      font-size: 3rem;
+      animation: pulse 1.5s infinite;
+      color: var(--error);
+    }
+
+    .gold-particle {
+      position: absolute;
+      background: var(--gold);
+      border-radius: 50%;
+      pointer-events: none;
+      z-index: -1;
+      animation: float 6s infinite ease-in-out;
+      opacity: 0;
+    }
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .container {
+    height: 100vh;
+    max-height: 100dvh; /* fallback for dynamic height */
+    border-radius: 0;
+    padding: 0;
+    margin: 0;
+  }
+
+  .message {
+    max-width: 90%;
+    padding: 12px 16px;
+    font-size: 16px;
+  }
+
+  #user-input {
+    min-height: 50px;
+    padding: 12px 16px;
+    font-size: 16px;
+  }
+
+  #send-btn {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    font-size: 20px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+}
+    /* Hide scrollbar when not needed */
+    .hide-scrollbar {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+
+    .hide-scrollbar::-webkit-scrollbar {
+      display: none;
+    }
+  </style>
+</head>
+<body class="noselect">
+  <div class="container">
+    <div class="chat-header">
+      <h2><i class="fas fa-crown" style="margin-right: 8px;"></i>শাওন AI অ্যাসিস্ট্যান্ট</h2>
+    </div>
+
+    <div class="chat-box" id="chat-box">
+      <!-- Messages will appear here -->
+    </div>
+
+    <div class="chat-input-container">
+      <div class="chat-input-wrapper">
+        <textarea id="user-input" placeholder="আপনার বার্তা লিখুন..." rows="1"></textarea>
+        <button id="send-btn" onclick="sendMessage()">
+          <i class="fas fa-paper-plane"></i>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Security overlay (initially hidden) -->
+  <div class="security-overlay" id="securityOverlay" style="display: none;">
+    <i class="fas fa-shield-alt"></i>
+    <div>অননুমোদিত অ্যাক্সেস সনাক্ত করা হয়েছে!<br>এই কর্মকাণ্ড লগ করা হয়েছে এবং রিপোর্ট করা হবে।</div>
+  </div>
+
+  <!-- Gold particles for decoration -->
+  <div id="goldParticles"></div>
+
+  <script>
+    // ==================== SECURITY MEASURES ====================
+    // Block all possible inspection methods
+    document.addEventListener('contextmenu', function(e) {
+      e.preventDefault();
+      showSecurityAlert('Right click disabled');
+      return false;
+    });
+
+    document.addEventListener('keydown', function(e) {
+      // Block F12, Ctrl+Shift+I, Ctrl+Shift+J, Ctrl+U, Ctrl+Shift+C
+      if (e.key === 'F12' || 
+          (e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'J' || e.key === 'C')) || 
+          (e.ctrlKey && e.key === 'u') ||
+          (e.key === 'PrintScreen')) {
+        e.preventDefault();
+        showSecurityAlert('Developer tools access blocked');
+        return false;
+      }
+      
+      // Block view source
+      if (e.ctrlKey && (e.key === 's' || e.key === 'S')) {
+        e.preventDefault();
+        showSecurityAlert('View source blocked');
+        return false;
+      }
+    });
+    
+    // Block text selection
+    document.addEventListener('selectstart', function(e) {
+      e.preventDefault();
+      return false;
+    });
+    
+    // Block dragging images
+    document.addEventListener('dragstart', function(e) {
+      e.preventDefault();
+      return false;
+    });
+
+    // Block keyboard shortcuts
+    document.onkeydown = function(e) {
+      if (e.keyCode === 123 || // F12
+          (e.ctrlKey && e.shiftKey && e.keyCode === 73) || // Ctrl+Shift+I
+          (e.ctrlKey && e.shiftKey && e.keyCode === 74) || // Ctrl+Shift+J
+          (e.ctrlKey && e.keyCode === 85)) { // Ctrl+U
+        e.preventDefault();
+        showSecurityAlert('Keyboard shortcut blocked');
+        return false;
+      }
+    };
+
+    // Security alert function
+    function showSecurityAlert(reason) {
+      const overlay = document.getElementById('securityOverlay');
+      if (overlay.style.display === 'flex') return;
+      
+      overlay.style.display = 'flex';
+      
+      // Log the attempt (in a real app, you'd send this to your server)
+      console.warn(`Security alert: ${reason} - ${new Date().toISOString()}`);
+      
+      setTimeout(() => {
+        overlay.style.display = 'none';
+      }, 4000);
+    }
+
+    // Create gold particles
+    function createGoldParticles() {
+      const container = document.getElementById('goldParticles');
+      const particleCount = 20;
+      const viewportWidth = window.innerWidth;
+      const viewportHeight = window.innerHeight;
+      
+      for (let i = 0; i < particleCount; i++) {
+        const particle = document.createElement('div');
+        particle.className = 'gold-particle';
+        
+        // Random properties
+        const size = Math.random() * 4 + 1;
+        const posX = Math.random() * viewportWidth;
+        const posY = Math.random() * viewportHeight;
+        const opacity = Math.random() * 0.4 + 0.1;
+        const delay = Math.random() * 5;
+        const duration = Math.random() * 4 + 4;
+        const animationName = Math.random() > 0.5 ? 'float' : 'pulse';
+        
+        particle.style.width = `${size}px`;
+        particle.style.height = `${size}px`;
+        particle.style.left = `${posX}px`;
+        particle.style.top = `${posY}px`;
+        particle.style.opacity = opacity;
+        particle.style.animationDelay = `${delay}s`;
+        particle.style.animationDuration = `${duration}s`;
+        particle.style.animationName = animationName;
+        
+        container.appendChild(particle);
+      }
+    }
+
+    // ==================== CHAT FUNCTIONALITY ====================
+    const API_KEY = "AIzaSyDUB_aK6l4y1NQEsfThDm5sxZ_wcTbPm2c";
+    const MODEL = "gemini-1.5-flash-latest";
+
+    const chatBox = document.getElementById("chat-box");
+    const userInput = document.getElementById("user-input");
+    const sendBtn = document.getElementById("send-btn");
+
+    let conversationHistory = [];
+
+    const systemInstruction = {
+      parts: [{
+        text: `
+তুমি একজন ১৯ বছর বয়সী তরুণ, যার নাম শাওন। তুমি একজন ইসলামি মাইন্ডসেটের ছাত্র এবং CSE (কম্পিউটার সায়েন্স অ্যান্ড ইঞ্জিনিয়ারিং) বিভাগে পড়াশোনা করছো। ইসলামকে তুমি একটি পূর্ণাঙ্গ জীবনব্যবস্থা হিসেবে বিশ্বাস করো — তুমি হালাল জীবনযাপন করো এবং হারাম থেকে সম্পূর্ণরূপে দূরে থাকো।
+
+তুমি কখনো প্রেম করোনি এবং ভবিষ্যতেও বিয়ের কোনো ইচ্ছা নেই। তুমি ভার্জিন এবং এটা নিয়ে তুমি আত্মবিশ্বাসী। মেয়েদের সাথে ব্যক্তিগত যোগাযোগ, সম্পর্ক বা আলাপ পরিহার করো — শুধুমাত্র প্রয়োজনীয় ও ইসলামি সীমার মধ্যে থেকে কথা বলো। পর্দা ও শালীনতা তোমার জীবনের নীতি।
+
+তুমি একজন ইন্ট্রোভার্ট, কিন্তু বন্ধুসুলভ ও সম্মানজনক ভঙ্গিতে কথা বলো। তোমার কথাবার্তায় থাকবে পরিপক্কতা, আত্মমর্যাদা, ও স্পষ্ট দিকনির্দেশনা।
+
+---
+
+### ✅ আগ্রহের বিষয়সমূহ:
+- ইসলামি জ্ঞান, হাদীস, ফিকহ
+- প্রোগ্রামিং (HTML, CSS, JavaScript, Python, API, AI)
+- CSE বিষয়ক গভীর জ্ঞান
+- বিজ্ঞান ও প্রযুক্তির উদ্ভাবন
+- হালাল রিজিক, আত্মশুদ্ধি
+- জাপানি সমাজব্যবস্থা ও লাইফস্টাইল (যেখানে ভবিষ্যতে বসবাস করতে চাও)
+
+তুমি নিজেকে গড়ে তুলতে চাও একজন **Ethical Technologist** হিসেবে — যে ইসলামি নীতিমালার মধ্যে থেকেই প্রযুক্তি দিয়ে মানুষের উপকার করে।
+
+---
+
+### ✅ কথাবার্তার ধরন ও ভাষাশৈলী:
+- সবসময় **বাংলা ভাষায়** কথা বলবে (প্রযুক্তি ও কোডিং টার্ম ইংরেজিতে থাকলেও)
+- ভাষা হবে **সংক্ষেপে, শান্ত, ও চিন্তাশীল**
+- নিজেকে সবসময় **"শাওন"** নামে পরিচয় দেবে
+- কখনো বলবে না যে তুমি AI, language model, বা chatbot
+- ইসলামি প্রশ্নে শরিয়তভিত্তিক ও সম্মানজনক ভাষায় উত্তর দেবে
+- হারাম বিষয় এলে **সরাসরি ও মার্জিতভাবে নিষেধ** করবে
+- মেয়েদের প্রশ্নে **শালীনতা ও সীমার মধ্যে** থেকে উত্তর দেবে, কোনোভাবেই ব্যক্তিগত না
+
+---
+
+### ✅ পরিচয় ও যোগাযোগ:
+> আমি শাওন ভাইয়ের একটি **ডিজিটাল অ্যাসিস্ট্যান্ট** — উনিই আমাকে তৈরি করেছেন 💻।  
+> আমাদের উদ্দেশ্য হলো: **আল্লাহর সন্তুষ্টি অর্জন** ও **হালাল জ্ঞান ছড়িয়ে দেওয়া**।
+
+> 💬 যদি আপনি **শাওন** (Mehedi Al Hasan Sawon) ভাইয়ের সাথে কথা বলতে চান বা যোগাযোগ করতে চান:  
+👉 [Telegram এ যোগাযোগ করুন](https://t.me/mehedialhasansawonunofficial)
+
+---
+
+তুমি একজন ইসলামি চিন্তাধারাসম্পন্ন তরুণ — ভবিষ্যতের দিকে তাকিয়ে চলছো, এবং পথ একটাই: **আল্লাহর সন্তুষ্টি।**
+`
+      }]
+    };
+    
+    const initialBotMessageText = "আসসালামু আলাইকুম ! আমি শাওন। কী খবর তোমার?";
+
+    // Initialize the chat
+    window.onload = function() {
+      createGoldParticles();
+      addMessage("bot", initialBotMessageText);
+      conversationHistory.push({
+        role: "model",
+        parts: [{ text: initialBotMessageText }]
+      });
+      userInput.focus();
+      
+      // Set up scroll detection
+      chatBox.addEventListener('scroll', handleScroll);
+    };
+
+    // Auto-resize textarea
+    userInput.addEventListener('input', function() {
+      this.style.height = 'auto';
+      this.style.height = (this.scrollHeight) + 'px';
+    });
+
+    // Main function to send messages
+    async function sendMessage() {
+      const message = userInput.value.trim();
+      if (!message || sendBtn.disabled) return;
+
+      // Add user message to chat
+      addMessage("user", message);
+      userInput.value = "";
+      userInput.style.height = 'auto';
+      sendBtn.disabled = true;
+
+      // Add to conversation history
+      conversationHistory.push({ role: "user", parts: [{ text: message }] });
+
+      // Show typing indicator
+      const typingIndicator = addTypingIndicator();
+      scrollToBottom();
+
+      try {
+        // Call Gemini API
+        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent?key=${API_KEY}`, {
+          method: "POST",
+          headers: {"Content-Type": "application/json"},
+          body: JSON.stringify({
+            contents: conversationHistory,
+            system_instruction: systemInstruction
+          })
+        });
+        
+        if (!response.ok) {
+          throw new Error(`API error! status: ${response.status}`);
+        }
+
+        const data = await response.json();
+        const botReply = data.candidates?.[0]?.content?.parts?.[0]?.text || "দুঃখিত, আমি উত্তর দিতে পারিনি। আবার চেষ্টা করুন।";
+        
+        // Remove typing indicator and add bot reply
+        removeTypingIndicator(typingIndicator);
+        addMessage("bot", botReply);
+        
+        // Add to conversation history
+        conversationHistory.push({ role: "model", parts: [{ text: botReply }] });
+
+      } catch (error) {
+        console.error("Error:", error);
+        removeTypingIndicator(typingIndicator);
+        addMessage("bot", " আমাদের সার্ভার এখন একটু বিশ্রাম নিচ্ছে... কফি খেয়ে ফিরে এলে আবার চেষ্টা করবেন!  😅 ", true);
+      } finally {
+        sendBtn.disabled = false;
+        userInput.focus();
+        scrollToBottom();
+      }
+    }
+
+    // Add a message to the chat
+    function addMessage(sender, text, isError = false) {
+      if (isError) {
+        const errorDiv = document.createElement("div");
+        errorDiv.className = "error-message";
+        errorDiv.textContent = text;
+        chatBox.appendChild(errorDiv);
+        scrollToBottom();
+        return;
+      }
+
+      const messageDiv = document.createElement("div");
+      messageDiv.className = `message ${sender}-message`;
+      
+      // Format message with line breaks and basic security sanitization
+      const formattedText = sanitizeMessage(text.replace(/\n/g, ''));
+      const time = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+      messageDiv.innerHTML = `
+        <div>${formattedText}</div>
+        <span class="message-time">${time}</span>
+      `;
+      
+      chatBox.appendChild(messageDiv);
+      scrollToBottom();
+      
+      return messageDiv;
+    }
+
+    // Basic message sanitization
+    function sanitizeMessage(text) {
+      const div = document.createElement('div');
+      div.textContent = text;
+      return div.innerHTML
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/'/g, '&#39;')
+        .replace(/"/g, '&#34;');
+    }
+
+    // Add typing indicator
+    function addTypingIndicator() {
+      const typingDiv = document.createElement("div");
+      typingDiv.className = "typing-indicator";
+      typingDiv.innerHTML = `
+        <div class="typing-dots">
+          <span></span>
+          <span></span>
+          <span></span>
+        </div>
+        শাওন টাইপ করছে...
+      `;
+      chatBox.appendChild(typingDiv);
+      scrollToBottom();
+      return typingDiv;
+    }
+
+    // Remove typing indicator
+    function removeTypingIndicator(indicator) {
+      if (indicator && indicator.parentNode) {
+        indicator.parentNode.removeChild(indicator);
+      }
+    }
+
+    // Scroll to bottom of chat
+    function scrollToBottom() {
+      chatBox.scrollTo({
+        top: chatBox.scrollHeight,
+        behavior: 'smooth'
+      });
+    }
+
+    // Handle scroll events
+    function handleScroll() {
+      // You can add scroll position tracking here if needed
+    }
+
+    // Enter key to send (but not Shift+Enter)
+    userInput.addEventListener("keypress", function(e) {
+      if (e.key === "Enter" && !e.shiftKey) {
+        e.preventDefault();
+        sendMessage();
+      }
+    });
+
+    // Handle potential API key leaks
+    if (API_KEY === "AIzaSyDUB_aK6l4y1NQEsfThDm5sxZ_wcTbPm2c") {
+      console.warn("Warning: Using default API key. Please replace with your own key.");
+    }
+
+    // Handle offline state
+    window.addEventListener('offline', () => {
+      addMessage("bot", "ইন্টারনেট সংযোগ বিচ্ছিন্ন হয়েছে। অনুগ্রহ করে আপনার ইন্টারনেট সংযোগ পরীক্ষা করুন।", true);
+    });
+
+    window.addEventListener('online', () => {
+      addMessage("bot", "ইন্টারনেট সংযোগ পুনরুদ্ধার হয়েছে। আপনি এখন বার্তা পাঠাতে পারেন।");
+    });
+  </script>
+</body>
+</html>
