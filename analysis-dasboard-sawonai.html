@@ -1,0 +1,686 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Sawon AI - Analytics Dashboard</title>
+  <!-- Bootstrap 5 CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <!-- Font Awesome for Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;500;600;700&display=swap');
+
+    body {
+      font-family: 'Hind Siliguri', sans-serif;
+      background: #1e293b;
+      color: #e2e8f0;
+      min-height: 100vh;
+      padding: 1rem;
+      margin: 0;
+    }
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0;
+    }
+    .header {
+      background: linear-gradient(135deg, #3b82f6, #a855f7);
+      padding: 1rem;
+      border-radius: 0.5rem;
+      text-align: center;
+    }
+    .header h2 {
+      color: #f59e0b;
+      margin: 0;
+      font-size: 1.8rem;
+    }
+    .header p {
+      color: #e2e8f0;
+      margin: 0;
+      font-size: 0.9rem;
+    }
+    .card {
+      background: #2d3748;
+      border: none;
+      border-radius: 0.5rem;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+      margin-top: 1rem;
+    }
+    .card-header {
+      background: #374151;
+      border-bottom: 1px solid #4b5563;
+      padding: 0.5rem;
+      font-weight: 600;
+      color: #f59e0b;
+    }
+    .card-body {
+      padding: 0.75rem;
+    }
+    .table {
+      color: #e2e8f0;
+      background: #2d3748;
+      margin: 0;
+    }
+    .table th, .table td {
+      border-color: #4b5563;
+      padding: 0.5rem;
+      vertical-align: middle;
+    }
+    .table-hover tbody tr:hover {
+      background: #374151;
+    }
+    .collect-box {
+      max-height: 750px;
+      overflow-y: auto;
+      background: #374151;
+      padding: 0.5rem;
+      color: yellow;
+      font-weight: bold;
+      border-radius: 0.5rem;
+      border: 1px solid #4b5563;
+      font-size: 1rem;
+      line-height: 1;
+      white-space: pre-wrap;
+    }
+    .collect-box::-webkit-scrollbar {
+      width: 5px;
+    }
+    .collect-box::-webkit-scrollbar-track {
+      background: #374151;
+    }
+    .collect-box::-webkit-scrollbar-thumb {
+      background: #60a5fa;
+      border-radius: 3px;
+    }
+    .input-group input, .input-group select {
+      background: #374151;
+      color: #e2e8f0;
+      border-color: #4b5563;
+      padding: 0.5rem;
+    }
+    .input-group input::placeholder {
+      color: #9ca3af;
+    }
+    .btn-primary {
+      background: #3b82f6;
+      border-color: #3b82f6;
+      padding: 0.5rem 1rem;
+    }
+    .btn-primary:hover {
+      background: #2563eb;
+      border-color: #2563eb;
+    }
+    .btn-success {
+      background: #10b981;
+      border-color: #10b981;
+      padding: 0.5rem 1rem;
+    }
+    .btn-success:hover {
+      background: #059669;
+      border-color: #059669;
+    }
+    .btn-purple {
+      background: #a855f7;
+      border-color: #a855f7;
+      padding: 0.5rem 1rem;
+    }
+    .btn-purple:hover {
+      background: #9333ea;
+      border-color: #9333ea;
+    }
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 0.5rem;
+      margin-top: 1rem;
+      align-items: center;
+    }
+    .stat-card {
+      background: #374151;
+      padding: 0.5rem;
+      border-radius: 0.5rem;
+      text-align: center;
+      border: 1px solid #3b82f6;
+    }
+    .stat-value {
+      font-size: 1.8rem;
+      font-weight: bold;
+      color: white;
+    }
+    .stat-label {
+      font-size: 0.8rem;
+      color: #9ca3af;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(5px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .animate-fade-in {
+      animation: fadeIn 0.3s ease-out;
+    }
+    .pagination {
+      margin: 0.5rem 0;
+    }
+    .pagination .page-link {
+      background: #374151;
+      color: #e2e8f0;
+      border-color: #4b5563;
+      cursor: pointer;
+    }
+    .pagination .page-item.active .page-link {
+      background: #3b82f6;
+      border-color: #3b82f6;
+    }
+    a.collect-link {
+      background-color: #f44336;
+      color: white;
+      padding: 14px 25px;
+      text-align: center;
+      text-decoration: none;
+      display: inline-block;
+      border-radius: 0.3rem;
+      margin-top: 0.5rem;
+    }
+    a.collect-link:hover {
+      background-color: #d32f2f;
+      text-decoration: none;
+    }
+    /* Cursor pointer for clickable rows */
+    .cursor-pointer {
+      cursor: pointer;
+    }
+    /* Preloader styles */
+    #preloader {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: #1e293b;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 9999;
+      transition: opacity 0.3s ease;
+    }
+    #preloader.hidden {
+      opacity: 0;
+      pointer-events: none;
+    }
+  </style>
+</head>
+<body>
+  <!-- Pre-loader -->
+  <div id="preloader">
+    <div class="spinner-border text-primary" style="width:3rem; height:3rem;" role="status">
+      <span class="visually-hidden">Loading...</span>
+    </div>
+  </div>
+
+  <div class="container">
+    <!-- Header -->
+    <div class="header">
+      <h2><i class="fas fa-chart-line me-2"></i>Sawon AI Analytics</h2>
+      <p>Real-time user interaction insights</p>
+    </div>
+
+    <!-- Stats -->
+    <div class="stats-grid">
+      <div class="stat-card animate-fade-in">
+        <div class="stat-value" id="totalUsers">0</div>
+        <div class="stat-label">Total Users</div>
+      </div>
+      <div class="stat-card animate-fade-in">
+        <div class="stat-value" id="totalMessages">0</div>
+        <div class="stat-label">Total Messages</div>
+      </div>
+<div class="stat-card animate-fade-in">
+  <div class="stat-value" id="avgWords">0</div>
+  <div class="stat-label">Avg. Words/Message</div>
+</div>
+
+<div class="stat-card animate-fade-in">
+  <div class="stat-value" id="totalWords">0</div>
+  <div class="stat-label">Total Word Count</div>
+</div>
+      <a href="#cd" class="collect-link">Collect Data</a>
+    </div>
+
+    <!-- Messages -->
+    <div class="card animate-fade-in">
+      <div class="card-header">Messages</div>
+      <div class="card-body">
+        <div class="input-group mb-2">
+          <span class="input-group-text"><i class="fas fa-search"></i></span>
+          <input id="messageSearch" type="text" class="form-control" placeholder="Search messages or users...">
+          <select id="messageSort" class="form-select w-auto">
+            <option value="timestamp-desc">Newest First</option>
+            <option value="timestamp-asc">Oldest First</option>
+            <option value="wordCount-desc">Most Words</option>
+            <option value="wordCount-asc">Fewest Words</option>
+          </select>
+        </div>
+        <div class="table-responsive">
+          <table class="table table-hover">
+            <thead>
+              <tr>
+                <th>User</th>
+                <th>Message</th>
+                <th>Date</th>
+                <th>Words</th>
+              </tr>
+            </thead>
+            <tbody id="messageList"></tbody>
+          </table>
+        </div>
+        <nav id="messagePagination" class="d-flex justify-content-center"></nav>
+      </div>
+    </div>
+
+    <!-- Questions -->
+    <div class="card animate-fade-in">
+      <div class="card-header">Questions</div>
+      <div class="card-body">
+        <div class="table-responsive">
+          <table class="table table-hover">
+            <thead>
+              <tr>
+                <th>User</th>
+                <th>Question</th>
+                <th>Date</th>
+                <th>Words</th>
+              </tr>
+            </thead>
+            <tbody id="questionList"></tbody>
+          </table>
+        </div>
+        <nav id="questionPagination" class="d-flex justify-content-center"></nav>
+      </div>
+    </div>
+
+    <!-- Collected Text -->
+    <div id="cd" class="card animate-fade-in">
+      <div class="card-header">Collected Message Text</div>
+      <div class="card-body">
+        <div class="mb-2 d-flex gap-2 flex-wrap">
+          <select id="collectFilter" class="form-select w-auto bg-dark text-white border-dark">
+            <option value="today">Today</option>
+            <option value="yesterday">Yesterday</option>
+            <option value="previous">Previous (All)</option>
+          </select>
+          <button id="collectButton" class="btn btn-primary"><i class="fas fa-cloud-download-alt me-1"></i>Collect</button>
+          <button id="copyButton" class="btn btn-success" disabled><i class="fas fa-copy me-1"></i>Copy</button>
+        </div>
+        <div id="collectBox" class="collect-box" aria-live="polite" aria-atomic="true"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal for message/question details -->
+  <div class="modal fade" id="detailsModal" tabindex="-1" aria-labelledby="detailsModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+      <div class="modal-content bg-dark text-light">
+        <div class="modal-header">
+          <h5 class="modal-title" id="detailsModalLabel">Details</h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body" id="detailsModalBody" style="white-space: pre-wrap;"></div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bootstrap JS Bundle (includes Popper) -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+  <!-- Firebase Modular SDK and main script -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-app.js";
+    import { getAnalytics, logEvent } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-analytics.js";
+    import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-database.js";
+
+    // Firebase configuration
+    const firebaseConfig = {
+      apiKey: "AIzaSyB9Lg7ez4pHGnq8AtwVPDapNLQ8ntAxeu4",
+      authDomain: "sawon-ai.firebaseapp.com",
+      databaseURL: "https://sawon-ai-default-rtdb.firebaseio.com",
+      projectId: "sawon-ai",
+      storageBucket: "sawon-ai.firebasestorage.app",
+      messagingSenderId: "1029498168899",
+      appId: "1:1029498168899:web:08e5059dba4fb3e87cd6f6",
+      measurementId: "G-XBQS6F62Q8"
+    };
+
+    // Initialize Firebase
+    const app = initializeApp(firebaseConfig);
+    const analytics = getAnalytics(app);
+    const db = getDatabase(app);
+
+    // DOM elements
+    const messageList = document.getElementById("messageList");
+    const questionList = document.getElementById("questionList");
+    const collectBox = document.getElementById("collectBox");
+    const messageSearch = document.getElementById("messageSearch");
+    const messageSort = document.getElementById("messageSort");
+    const collectFilter = document.getElementById("collectFilter");
+    const totalUsers = document.getElementById("totalUsers");
+    const totalMessages = document.getElementById("totalMessages");
+    const avgWords = document.getElementById("avgWords");
+    const totalWords = document.getElementById("totalWords");
+    const messagePagination = document.getElementById("messagePagination");
+    const questionPagination = document.getElementById("questionPagination");
+    const collectButton = document.getElementById("collectButton");
+    const copyButton = document.getElementById("copyButton");
+    const preloader = document.getElementById("preloader");
+
+    // Modal elements and instance
+    const detailsModalElement = document.getElementById('detailsModal');
+    let detailsModal;
+
+    window.addEventListener('DOMContentLoaded', () => {
+      detailsModal = new bootstrap.Modal(detailsModalElement);
+    });
+
+    // Global variables
+    let allMessages = [];
+    let allQuestions = [];
+    const itemsPerPage = 15;
+    const today = new Date();
+    const yesterday = new Date(today);
+    yesterday.setDate(today.getDate() - 1);
+
+    // Utility: Hide preloader with fade
+    function hidePreloader() {
+      preloader.classList.add('hidden');
+      setTimeout(() => {
+        preloader.style.display = 'none';
+      }, 300);
+    }
+
+    // Show empty state helper
+    function showEmptyState(container, message) {
+      if (container.tagName === 'TBODY') {
+        container.innerHTML = `
+          <tr><td colspan="4" class="text-center text-muted">${message}</td></tr>
+        `;
+      } else {
+        container.innerHTML = `<p class="text-center text-muted">${message}</p>`;
+      }
+    }
+
+    // Format timestamp to readable string
+    function formatDate(timestamp) {
+      return new Date(timestamp).toLocaleString();
+    }
+
+    // Update pagination UI
+    function updatePagination(items, currentPage, container, callback) {
+      container.innerHTML = "";
+      const totalPages = Math.ceil(items.length / itemsPerPage);
+      if (totalPages <= 1) return;
+
+      const ul = document.createElement("ul");
+      ul.className = "pagination";
+
+      // Previous button
+      const prevLi = document.createElement("li");
+      prevLi.className = `page-item ${currentPage === 1 ? 'disabled' : ''}`;
+      prevLi.innerHTML = `<button class="page-link" aria-label="Previous page">&laquo;</button>`;
+      ul.appendChild(prevLi);
+      prevLi.querySelector("button").addEventListener("click", () => {
+        if (currentPage > 1) {
+          callback(currentPage - 1);
+          logEvent(analytics, "pagination_clicked", { page: currentPage - 1 });
+        }
+      });
+
+      // Page numbers
+      for (let page = 1; page <= totalPages; page++) {
+        const li = document.createElement("li");
+        li.className = `page-item ${page === currentPage ? 'active' : ''}`;
+        li.innerHTML = `<button class="page-link" aria-label="Page ${page}">${page}</button>`;
+        ul.appendChild(li);
+        li.querySelector("button").addEventListener("click", () => {
+          callback(page);
+          logEvent(analytics, "pagination_clicked", { page });
+        });
+      }
+
+      // Next button
+      const nextLi = document.createElement("li");
+      nextLi.className = `page-item ${currentPage === totalPages ? 'disabled' : ''}`;
+      nextLi.innerHTML = `<button class="page-link" aria-label="Next page">&raquo;</button>`;
+      ul.appendChild(nextLi);
+      nextLi.querySelector("button").addEventListener("click", () => {
+        if (currentPage < totalPages) {
+          callback(currentPage + 1);
+          logEvent(analytics, "pagination_clicked", { page: currentPage + 1 });
+        }
+      });
+
+      container.appendChild(ul);
+    }
+
+    // Show details modal with dynamic content
+    function showDetailsModal(title, content) {
+      document.getElementById('detailsModalLabel').textContent = title;
+      document.getElementById('detailsModalBody').textContent = content;
+      detailsModal.show();
+    }
+
+    // Display messages with pagination
+    function displayMessages(messages, container, page) {
+      container.innerHTML = "";
+      const start = (page - 1) * itemsPerPage;
+      const end = start + itemsPerPage;
+      const paginatedMessages = messages.slice(start, end);
+
+      if (paginatedMessages.length === 0) {
+        showEmptyState(container, "No messages found");
+      } else {
+        paginatedMessages.forEach(msg => {
+          const tr = document.createElement("tr");
+          tr.className = "animate-fade-in cursor-pointer";
+          tr.innerHTML = `
+            <td>${msg.name}</td>
+            <td>${msg.message.substring(0, 50)}${msg.message.length > 50 ? '...' : ''}</td>
+            <td>${formatDate(msg.timestamp)}</td>
+            <td>${msg.wordCount}</td>
+          `;
+          tr.addEventListener("click", () => {
+            const content = 
+              `User: ${msg.name}\n` +
+              `Message: ${msg.message}\n` +
+              `Date: ${formatDate(msg.timestamp)}\n` +
+              `Words: ${msg.wordCount}\n` +
+              `Type: ${msg.isQuestion ? 'Question' : 'Statement'}`;
+            showDetailsModal('Message Details', content);
+            logEvent(analytics, "view_message_details", { user: msg.name, timestamp: msg.timestamp });
+          });
+          container.appendChild(tr);
+        });
+      }
+
+      updatePagination(messages, page, messagePagination, (newPage) => displayMessages(messages, container, newPage));
+    }
+
+    // Display questions with pagination
+    function displayQuestions(questions, container, page) {
+      container.innerHTML = "";
+      const start = (page - 1) * itemsPerPage;
+      const end = start + itemsPerPage;
+      const paginatedQuestions = questions.slice(start, end);
+
+      if (paginatedQuestions.length === 0) {
+        showEmptyState(container, "No questions found");
+      } else {
+        paginatedQuestions.forEach(msg => {
+          const tr = document.createElement("tr");
+          tr.className = "animate-fade-in cursor-pointer";
+          tr.innerHTML = `
+            <td>${msg.name}</td>
+            <td>${msg.message.substring(0, 50)}${msg.message.length > 50 ? '...' : ''}</td>
+            <td>${formatDate(msg.timestamp)}</td>
+            <td>${msg.wordCount}</td>
+          `;
+          tr.addEventListener("click", () => {
+            const content = 
+              `User: ${msg.name}\n` +
+              `Question: ${msg.message}\n` +
+              `Date: ${formatDate(msg.timestamp)}\n` +
+              `Words: ${msg.wordCount}`;
+            showDetailsModal('Question Details', content);
+            logEvent(analytics, "view_question_details", { user: msg.name, timestamp: msg.timestamp });
+          });
+          container.appendChild(tr);
+        });
+      }
+
+      updatePagination(questions, page, questionPagination, (newPage) => displayQuestions(questions, container, newPage));
+    }
+
+    // Collect filtered message text
+    function collectText() {
+      collectBox.innerHTML = "";
+      const filter = collectFilter.value;
+      let filteredMessages = [];
+
+      if (filter === "today") {
+        filteredMessages = allMessages.filter(msg => {
+          const msgDate = new Date(msg.timestamp);
+          return msgDate.toDateString() === today.toDateString();
+        });
+      } else if (filter === "yesterday") {
+        filteredMessages = allMessages.filter(msg => {
+          const msgDate = new Date(msg.timestamp);
+          return msgDate.toDateString() === yesterday.toDateString();
+        });
+      } else {
+        filteredMessages = allMessages;
+      }
+
+      if (filteredMessages.length === 0) {
+        showEmptyState(collectBox, `No text available for ${filter}`);
+        copyButton.disabled = true;
+        return;
+      }
+
+      filteredMessages.forEach(msg => {
+        const p = document.createElement("p");
+        p.textContent = msg.message;
+        collectBox.appendChild(p);
+      });
+      copyButton.disabled = false;
+      logEvent(analytics, "collect_text", { filter, message_count: filteredMessages.length });
+    }
+
+    // Copy collected text to clipboard
+    function copyText() {
+      const text = Array.from(collectBox.querySelectorAll("p")).map(p => p.textContent).join("\n");
+      navigator.clipboard.writeText(text).then(() => {
+        alert("Text copied to clipboard!");
+        logEvent(analytics, "copy_text", { text_length: text.length });
+      }).catch(() => {
+        alert("Failed to copy text.");
+      });
+    }
+
+    // Load data from Firebase
+    function loadData() {
+      const messagesRef = ref(db, "analysis");
+      onValue(messagesRef, (snapshot) => {
+        allMessages = [];
+        allQuestions = [];
+        messageList.innerHTML = "";
+        questionList.innerHTML = "";
+        collectBox.innerHTML = "";
+        copyButton.disabled = true;
+
+        const data = snapshot.val();
+        if (!data) {
+          showEmptyState(messageList, "No messages found");
+          showEmptyState(questionList, "No questions found");
+          showEmptyState(collectBox, "No text available");
+          hidePreloader();
+          return;
+        }
+
+        let messageCount = 0;
+        let totalWordCount = 0;
+        const uniqueUsers = new Set();
+
+        Object.entries(data).forEach(([userId, userMessages]) => {
+          uniqueUsers.add(userId);
+          Object.entries(userMessages).forEach(([timestamp, msg]) => {
+            messageCount++;
+            totalWordCount += msg.wordCount || 0;
+
+            const messageObj = {
+              userId,
+              name: msg.userName || "Anonymous",
+              message: msg.message,
+              timestamp: parseInt(timestamp),
+              isQuestion: msg.isQuestion,
+              wordCount: msg.wordCount || 0
+            };
+
+            allMessages.push(messageObj);
+            if (msg.isQuestion) allQuestions.push(messageObj);
+          });
+        });
+
+        allMessages.sort((a, b) => b.timestamp - a.timestamp);
+        allQuestions.sort((a, b) => b.timestamp - a.timestamp);
+
+        totalUsers.textContent = uniqueUsers.size;
+        totalMessages.textContent = messageCount;
+        avgWords.textContent = messageCount > 0 ? Math.round(totalWordCount / messageCount) : 0;
+        totalWords.textContent = totalWordCount;
+
+        displayMessages(allMessages, messageList, 1);
+        displayQuestions(allQuestions, questionList, 1);
+
+        hidePreloader();
+
+        logEvent(analytics, "data_loaded", { users: uniqueUsers.size, messages: messageCount });
+      });
+    }
+
+    // Search functionality
+    messageSearch.addEventListener("input", (e) => {
+      const searchTerm = e.target.value.toLowerCase();
+      const filtered = allMessages.filter(msg => 
+        msg.message.toLowerCase().includes(searchTerm) || 
+        msg.name.toLowerCase().includes(searchTerm)
+      );
+      displayMessages(filtered, messageList, 1);
+      logEvent(analytics, "search_messages", { term: searchTerm });
+    });
+
+    // Sorting
+    messageSort.addEventListener("change", (e) => {
+      const [key, order] = e.target.value.split("-");
+      const sorted = [...allMessages].sort((a, b) => {
+        if (key === "timestamp") return order === "asc" ? a.timestamp - b.timestamp : b.timestamp - a.timestamp;
+        if (key === "wordCount") return order === "asc" ? a.wordCount - b.wordCount : b.wordCount - a.wordCount;
+        return 0;
+      });
+      displayMessages(sorted, messageList, 1);
+      logEvent(analytics, "sort_messages", { key, order });
+    });
+
+    // Collect and copy buttons
+    collectButton.addEventListener("click", collectText);
+    copyButton.addEventListener("click", copyText);
+
+    // Initialize on page load
+    window.addEventListener("load", () => {
+      preloader.style.display = 'flex';
+      loadData();
+      logEvent(analytics, "page_load", { page: "analytics_dashboard" });
+    });
+  </script>
+</body>
+</html>
